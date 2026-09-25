@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server'
-import { success, z } from 'zod';
+import { z } from 'zod';
 
 import { prisma } from '@/app/lib/prisma';
 
@@ -32,35 +32,69 @@ export async function GET(request: NextRequest) {
 }
 
 
-const createTodoSchema = z.object({
+//creado objeto de validacion para post
+const todoSchema = z.object({
   description: z.string().min(1).max(200),
-  completed: z.boolean().default(false),
-});
+  completed: z.boolean().optional().default(false),
+})
+.strict(); // me permite mandar mensaje al usuario en caso de mandar otras propiedades que no esten en el esquema
 
 
 export async function POST(request: NextRequest) { 
-   const body = await request.json();
-    console.log( body )
-  //const result = createTodoSchema.safeParse(body);
-  const result = { success: false }
+
+try {
+
+  //realizando validacion asincrona
+  const result = await todoSchema.safeParseAsync(await request.json());
 
   if (!result.success) {
-    console.log('******** entro *******');
     
     return NextResponse.json(
       {
         error: 'Invalid request body',
-        //issues: result.error.issues,
+        issues: result.error.issues,
       },
       { status: 400 }
     );
   }
  
   const todo = await prisma.todo.create({
-    data:{
-        description: body.description
-    }
+    data: result.data
  });
 
   return NextResponse.json( todo, { status: 201} );
+} catch (error) {
+  
+  return NextResponse.json(
+      {
+        error
+      },
+      { status: 400 }
+    );
+}
+
+
+}
+
+export async function DELETE() { 
+ 
+    try {
+      await prisma.todo.deleteMany({
+        where: { completed: true },
+      });
+
+      return NextResponse.json(
+        { messaje: 'Todos eliminados' },
+        { status: 200 }
+      );
+    } catch (error) {
+      console.error(error);
+
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+
+  
 }
