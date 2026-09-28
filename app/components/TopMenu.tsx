@@ -1,5 +1,6 @@
 
 import { cookies } from 'next/headers'
+import Link from 'next/link'
 import { Suspense } from 'react'
 import { CiChat1, CiMenuBurger, CiSearch, CiShoppingCart } from 'react-icons/ci'
 
@@ -18,12 +19,7 @@ const LoadindCart = () => {
   )
 }
 
-
-const ShopingCart = async () => {
-  const cookieStore = await cookies()
-  const cart = JSON.parse(cookieStore.get('cart')?.value ?? '{}')
-
-  const getTotalCount = () => {
+ const getTotalCount = ( cart: {[id:string]:number}) : number => {
     let items = 0;
 
     Object.values( cart ).forEach( (value) => {
@@ -33,13 +29,30 @@ const ShopingCart = async () => {
     return items
   }
 
-  return <button
-            type="button"
-            className="p-2 flex items-center justify-center cursor-pointer h-10 rounded-xl shadow-lg bg-gray-100 focus:bg-gray-100 active:bg-gray-200"
-        >
-            <span className='text-sm mr-2 font-bold'>{ getTotalCount() }</span>
-            <CiShoppingCart size={25} />
-        </button>
+const ShopingCart = async () => {
+  const cookieStore = await cookies()
+  const cart = JSON.parse(cookieStore.get('cart')?.value ?? '{}')
+  const totalItems = getTotalCount( cart );
+
+  return(
+    <>
+        {
+            totalItems > 0 && (
+                <Link
+                    href="/dashboard/cart"
+                    className="p-2 flex items-center justify-center cursor-pointer h-10 rounded-xl shadow-lg bg-gray-100 focus:bg-gray-100 active:bg-gray-200"
+                >
+                
+                    <span className='text-sm mr-2 font-bold'>{ totalItems }</span>
+                    <CiShoppingCart size={25} />
+                        
+                </Link>
+            )
+        }
+    
+    </>
+  ) 
+        
 }
 
 

@@ -23,3 +23,10 @@ export const addToCart = ( id: string ) => {
 
     setCookie('cart', JSON.stringify(cookieCart))
 }
+
+export const removeToCart = ( id: string ) => {
+    const cookieCart = getCookieCart()
+    delete cookieCart[id] 
+
+    setCookie('cart', JSON.stringify(cookieCart))
+}
